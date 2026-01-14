@@ -2,52 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>College ROI Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College ROI Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
-<h3>How This Works</h3>
-<p>
-This calculator models college decisions as an engineering optimization problem.
-It estimates total cost, loan burden, and post-graduation income to calculate
-how long it takes to break even financially.
-</p>
-
-<h3>Limitations</h3>
-<p>
-This model simplifies real-world finances and does not include taxes, salary
-growth, scholarships, or inflation. It is designed for comparison, not prediction.
-</p>
-  
 <body>
   <div class="container">
-    <h1>College ROI Calculator</h1>
-    <p>Analyze college choices using engineering-style financial modeling.</p>
+    <h1>🎓 College ROI Dashboard</h1>
+    <p>Add colleges, compare costs vs earnings, and see break-even time in real-time!</p>
 
-    <div class="inputs">
-      <label>Annual Cost ($)</label>
-      <input id="cost" type="number" placeholder="25000">
-
-      <label>Years to Graduate</label>
-      <input id="years" type="number" value="4">
-
-      <label>Starting Salary ($)</label>
-      <input id="salary" type="number" placeholder="65000">
-
-      <label>Loan Interest Rate (%)</label>
-      <input id="rate" type="number" value="5">
-
-      <button onclick="preset(25000, 4, 65000)">State University</button>
-      <button onclick="preset(55000, 4, 75000)">Private University</button>
-      <button onclick="preset(18000, 4, 62000)">Community College → Transfer</button>
-      
-      <button onclick="calculate()">Calculate ROI</button>
+    <div class="controls">
+      <button id="addCollegeBtn">➕ Add College</button>
+      <button id="downloadChartBtn">📥 Download Chart</button>
+      <button id="downloadResultsBtn">📥 Download Results</button>
     </div>
+
+    <div id="collegeContainer" class="college-section"></div>
 
     <div class="results">
       <h2>Results</h2>
-      <p id="output"></p>
+      <div id="output"></div>
     </div>
 
     <canvas id="roiChart"></canvas>
