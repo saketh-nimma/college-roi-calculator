@@ -10,7 +10,19 @@
 <body>
   <div class="container">
     <h1>🎓 College ROI Dashboard</h1>
-    <p>Add colleges, compare costs vs earnings, and see break-even time in real-time!</p>
+    <p>Compare colleges, costs, and post-graduation earnings with interactive charts.</p>
+
+    <div class="preset-section">
+      <label>Choose a College Preset:</label>
+      <select id="presetDropdown">
+        <option value="">--Choose a Preset--</option>
+        <option value="state">State University</option>
+        <option value="private">Private University</option>
+        <option value="community">Community College → Transfer</option>
+        <option value="mit">MIT</option>
+        <option value="harvard">Harvard</option>
+      </select>
+    </div>
 
     <div class="controls">
       <button id="addCollegeBtn">➕ Add College</button>
@@ -26,6 +38,11 @@
     </div>
 
     <canvas id="roiChart"></canvas>
+
+    <div class="about">
+      <h3>How It Works</h3>
+      <p>Adjust sliders or select presets to see total college cost, expected post-graduation earnings, and break-even time. Charts update dynamically and results can be downloaded.</p>
+    </div>
   </div>
 
   <script src="script.js"></script>
