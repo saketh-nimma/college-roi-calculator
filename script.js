@@ -1,156 +1,180 @@
-body {
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-  font-family: 'Poppins', sans-serif;
-  margin: 0;
-  padding: 0;
+let collegeCount = 0;
+let chart;
+const collegeContainer = document.getElementById('collegeContainer');
+const outputDiv = document.getElementById('output');
+
+const colorSets = {
+  earnings: ["#16a34a","#2563eb","#f59e0b","#8b5cf6","#10b981","#f97316"],
+  cost: ["#dc2626","#b91c1c","#9333ea","#be185d","#ef4444","#f43f5e"]
+};
+
+const presets = {
+  state: { cost: 25000, years: 4, salary: 65000, rate: 5 },
+  private: { cost: 55000, years: 4, salary: 75000, rate: 5 },
+  community: { cost: 18000, years: 4, salary: 62000, rate: 5 },
+  mit: { cost: 70000, years: 4, salary: 95000, rate: 5 },
+  harvard: { cost: 75000, years: 4, salary: 100000, rate: 5 }
+};
+
+// Initial colleges
+addCollege();
+addCollege();
+
+// Event Listeners
+document.getElementById('addCollegeBtn').addEventListener('click', addCollege);
+document.getElementById('downloadChartBtn').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'college_roi_chart.png';
+  link.href = chart.toBase64Image();
+  link.click();
+});
+document.getElementById('downloadResultsBtn').addEventListener('click', () => {
+  const blob = new Blob([outputDiv.innerText], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.download = 'college_roi_results.txt';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+});
+
+document.getElementById('presetDropdown').addEventListener('change', e => {
+  const preset = presets[e.target.value];
+  if (!preset) return;
+  if (collegeCount === 0) addCollege();
+  const firstCol = document.getElementById(`college1`);
+  firstCol.querySelector(`#cost1`).value = preset.cost;
+  firstCol.querySelector(`#years1`).value = preset.years;
+  firstCol.querySelector(`#salary1`).value = preset.salary;
+  firstCol.querySelector(`#rate1`).value = preset.rate;
+
+  firstCol.querySelector(`#costVal1`).textContent = preset.cost;
+  firstCol.querySelector(`#yearsVal1`).textContent = preset.years;
+  firstCol.querySelector(`#salaryVal1`).textContent = preset.salary;
+  firstCol.querySelector(`#rateVal1`).textContent = preset.rate;
+
+  calculate();
+});
+
+function addCollege() {
+  collegeCount++;
+  const colDiv = document.createElement('div');
+  colDiv.className = 'college-input';
+  colDiv.id = `college${collegeCount}`;
+  colDiv.innerHTML = `
+    <h3>College ${collegeCount}</h3>
+    <button class="remove-btn" title="Remove College">×</button>
+    <label>💰 Annual Cost ($)<span id="costVal${collegeCount}">25000</span></label>
+    <input type="range" id="cost${collegeCount}" min="5000" max="100000" value="25000">
+    <label>🏫 Years to Graduate <span id="yearsVal${collegeCount}">4</span></label>
+    <input type="range" id="years${collegeCount}" min="1" max="8" value="4">
+    <label>💵 Starting Salary ($)<span id="salaryVal${collegeCount}">65000</span></label>
+    <input type="range" id="salary${collegeCount}" min="20000" max="200000" value="65000">
+    <label>📉 Loan Interest Rate (%)<span id="rateVal${collegeCount}">5</span></label>
+    <input type="range" id="rate${collegeCount}" min="0" max="20" value="5">
+  `;
+  collegeContainer.appendChild(colDiv);
+
+  const removeBtn = colDiv.querySelector('.remove-btn');
+  removeBtn.addEventListener('click', () => {
+    collegeContainer.removeChild(colDiv);
+    calculate();
+  });
+
+  const sliders = colDiv.querySelectorAll('input[type=range]');
+  sliders.forEach(slider => slider.addEventListener('input', calculate));
+  sliders.forEach(slider => slider.addEventListener('input', () => {
+    document.getElementById(`costVal${collegeCount}`).textContent = document.getElementById(`cost${collegeCount}`).value;
+    document.getElementById(`yearsVal${collegeCount}`).textContent = document.getElementById(`years${collegeCount}`).value;
+    document.getElementById(`salaryVal${collegeCount}`).textContent = document.getElementById(`salary${collegeCount}`).value;
+    document.getElementById(`rateVal${collegeCount}`).textContent = document.getElementById(`rate${collegeCount}`).value;
+  }));
+
+  calculate();
 }
 
-.container {
-  max-width: 1100px;
-  margin: 40px auto;
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+function calculate() {
+  outputDiv.innerHTML = "";
+  const data = [];
+  const collegeElements = collegeContainer.querySelectorAll('.college-input');
+
+  collegeElements.forEach((col, idx) => {
+    const cost = Number(col.querySelector(`#cost${idx+1}`).value);
+    const years = Number(col.querySelector(`#years${idx+1}`).value);
+    const salary = Number(col.querySelector(`#salary${idx+1}`).value);
+    const rate = Number(col.querySelector(`#rate${idx+1}`).value) / 100;
+
+    const totalCost = cost * years;
+    const annualLoan = totalCost * rate;
+    const netIncome = salary - annualLoan;
+    const breakEven = totalCost / netIncome;
+
+    outputDiv.innerHTML += `
+      <h4>College ${idx+1}</h4>
+      Total Cost: $${totalCost.toLocaleString()}<br>
+      Annual Loan Payment: $${annualLoan.toLocaleString()}<br>
+      Net Annual Income: $${netIncome.toLocaleString()}<br>
+      Break-even Time: <span style="color:${breakEven <= 5 ? 'green':'red'}">${breakEven.toFixed(1)} years</span><br><br>
+    `;
+
+    data.push({ totalCost, netIncome });
+  });
+
+  buildChart(data);
 }
 
-h1 {
-  text-align: center;
-  color: #1e3a8a;
-  font-size: 2.5rem;
-  margin-bottom: 5px;
+function buildChart(data) {
+  const yearsArr = Array.from({length: 10}, (_, i) => i+1);
+  const datasets = [];
+
+  data.forEach((college, index) => {
+    let totalEarned = 0;
+    const earnings = [];
+    const debt = [];
+    for(let i=1;i<=10;i++){
+      totalEarned += college.netIncome;
+      earnings.push(totalEarned);
+      debt.push(college.totalCost);
+    }
+
+    datasets.push({
+      label: `College ${index+1} Earnings`,
+      data: earnings,
+      borderColor: colorSets.earnings[index % colorSets.earnings.length],
+      backgroundColor: colorSets.earnings[index % colorSets.earnings.length]+'33',
+      fill: true,
+      tension: 0.3,
+      borderWidth: 3
+    });
+
+    datasets.push({
+      label: `College ${index+1} Cost`,
+      data: debt,
+      borderColor: colorSets.cost[index % colorSets.cost.length],
+      backgroundColor: colorSets.cost[index % colorSets.cost.length]+'33',
+      fill: true,
+      tension: 0.3,
+      borderWidth: 3
+    });
+  });
+
+  if(chart) chart.destroy();
+
+  chart = new Chart(document.getElementById('roiChart'), {
+    type: 'line',
+    data: { labels: yearsArr, datasets: datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Dollars ($)' } },
+        x: { title: { display: true, text: 'Years' } }
+      }
+    }
+  });
 }
 
-p {
-  text-align: center;
-  color: #374151;
-  margin-bottom: 25px;
-  font-size: 1.1rem;
-}
-
-.preset-section {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.preset-section select {
-  padding: 12px 16px;
-  font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid #d1d5db;
-  transition: 0.2s;
-}
-
-.preset-section select:hover {
-  border-color: #2563eb;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-}
-
-.controls button {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.controls button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.college-section {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-  justify-content: center;
-}
-
-.college-input {
-  background: linear-gradient(135deg, #f3f4f6, #e0e7ff);
-  padding: 25px;
-  border-radius: 16px;
-  min-width: 300px;
-  position: relative;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.college-input:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-}
-
-.college-input h3 {
-  text-align: center;
-  color: #1e3a8a;
-  margin-top: 0;
-  font-size: 1.4rem;
-}
-
-.college-input .remove-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.college-input label {
-  display: block;
-  margin-top: 15px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.college-input input[type=range] {
-  width: 100%;
-  margin-top: 8px;
-  accent-color: #2563eb;
-}
-
-.results {
-  margin-top: 35px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  padding: 25px;
-  border-radius: 16px;
-  font-size: 1rem;
-  color: #1f2937;
-}
-
-#roiChart {
-  margin-top: 35px;
-  background: linear-gradient(135deg, #fef9ff, #e0f2fe);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-.about {
-  margin-top: 35px;
-  background: #e0f2fe;
-  padding: 25px;
-  border-radius: 16px;
-  color: #1e3a8a;
-  font-size: 1rem;
-}
-
-.about h3 {
-  margin-top: 0;
-}
+// Initial calculation
+calculate();
