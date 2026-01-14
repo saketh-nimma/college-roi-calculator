@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>College ROI Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>College ROI Calculator</h1>
+    <p>Analyze college choices using engineering-style financial modeling.</p>
+
+    <div class="inputs">
+      <label>Annual Cost ($)</label>
+      <input id="cost" type="number" placeholder="25000">
+
+      <label>Years to Graduate</label>
+      <input id="years" type="number" value="4">
+
+      <label>Starting Salary ($)</label>
+      <input id="salary" type="number" placeholder="65000">
+
+      <label>Loan Interest Rate (%)</label>
+      <input id="rate" type="number" value="5">
+
+      <button onclick="calculate()">Calculate ROI</button>
+    </div>
+
+    <div class="results">
+      <h2>Results</h2>
+      <p id="output"></p>
+    </div>
+
+    <canvas id="roiChart"></canvas>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
