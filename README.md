@@ -1,1 +1,0 @@
-This calculator models college decisions as an engineering optimization problem. It estimates total cost of attendance, loan burden, and post-graduation earnings to calculate break-even time. Rather than ranking schools by prestige, the model highlights how sensitive outcomes are to assumptions like tuition, salary, and interest rates.
