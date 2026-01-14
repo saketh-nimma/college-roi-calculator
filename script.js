@@ -1,3 +1,9 @@
+function preset(cost, years, salary) {
+  document.getElementById("cost").value = cost;
+  document.getElementById("years").value = years;
+  document.getElementById("salary").value = salary;
+}
+
 let chart;
 
 function calculate() {
